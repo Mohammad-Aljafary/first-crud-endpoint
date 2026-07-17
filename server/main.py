@@ -7,5 +7,8 @@ app.include_router(router)
 
 @app.get("/")
 async def root():
-    return {"message": "Hello World!"}
-
+    return {"message": "Hello from FastAPI!"}
+    
+@app.get("/health")
+async def health_check():
+    return {"status": "ok"}

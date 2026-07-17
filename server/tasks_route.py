@@ -9,4 +9,8 @@ router = APIRouter(
 
 @router.get("/")
 async def read_tasks():
-    return {"message": "Hello from tasks route!"}
+    return {
+        "name": "Task API",
+        "version": "1.0",
+        "endpoints": ["/tasks"],
+    }
