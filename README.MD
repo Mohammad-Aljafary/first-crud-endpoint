@@ -1,19 +1,31 @@
 # First CRUD Endpoints
 
-Simple FastAPI project for learning CRUD API design with a task management example.
+Simple FastAPI project for learning CRUD API design with a task management example backed by SQLite.
 
 ## Project Overview
 
 This repository contains a small REST API built with FastAPI. It exposes a set of task endpoints for creating, reading, updating, and deleting tasks.
 
-Tasks are stored in memory, so the data is reset whenever the server restarts. The project is intentionally lightweight and is a good starting point for practicing API structure, request validation, and route organization.
+Tasks are stored in SQLite, so the data survives server restarts. The project is intentionally lightweight and is a good starting point for practicing API structure, request validation, and route organization.
+
+## Why SQLite?
+
+- It lives in a single file, which keeps the project easy to move around.
+- It needs zero setup for local development.
+- It survives restarts, so your data does not disappear every time the app stops.
+
+## Database Location
+
+- The database file lives at `server/db/tasks.db`.
+- It is created automatically the first time the app starts.
+- It is usually git-ignored, so each new clone starts with a fresh database file.
 
 ## Features
 
 - FastAPI application with automatic validation and OpenAPI docs
 - CRUD endpoints for tasks
 - Basic health check endpoint
-- In-memory data storage for simple experimentation
+- SQLite persistence for simple experimentation
 
 ## Tech Stack
 
@@ -21,6 +33,8 @@ Tasks are stored in memory, so the data is reset whenever the server restarts. T
 - FastAPI
 - Uvicorn
 - Pydantic
+- SQLite
+- SQLAlchemy
 
 ## Project Structure
 
@@ -114,7 +128,7 @@ Create and update responses include:
 
 ## Getting Started
 
-### 1. Install dependencies
+### Install dependencies
 
 From the `server` directory:
 
@@ -122,18 +136,32 @@ From the `server` directory:
 uv sync
 ```
 
-### 2. Run the app
+### Start the project
 
 ```bash
-uvicorn main:app --reload
+uv run uvicorn main:app --reload
 ```
 
-### 3. Open the docs
+### Open the docs
 
 Once the server is running, open:
 
 - Swagger UI: `http://localhost:8000/docs`
 - ReDoc: `http://localhost:8000/redoc`
+
+## Database Screenshot
+
+![SQLite database open in DB Browser](docs/db-browser-snapshot.svg)
+
+## Example SQL Query
+
+One query used in Stage 4 was:
+
+```sql
+SELECT COUNT(*) FROM tasks;
+```
+
+On this copy of the database, it returned `4`.
 
 ## Example Requests
 
@@ -153,7 +181,7 @@ curl http://localhost:8000/tasks
 
 ## Notes
 
-- Task IDs are assigned automatically in the current in-memory list.
+- Task IDs are assigned automatically by SQLite.
 - Empty task titles are rejected with a validation error.
-- The API is designed for local development and learning, not persistent storage.
+- Example tasks are seeded only when the table is empty, so they do not multiply on restart.
 
