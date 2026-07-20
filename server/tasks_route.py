@@ -39,12 +39,9 @@ async def read_task(task_id: int) -> Task:
 async def create_task(task: TaskCreate) -> Task:
     if task.title == None or task.title.strip() == "":
         raise HTTPException(status_code=400, detail="Task title cannot be empty")
-    new_task = Task(
-        id=len(tasks) + 1,
-        title=task.title,
-        done=False
-    )
-    tasks.append(new_task)
+    new_task = TaskDB(title=task.title)
+    db.add(new_task)
+    db.commit()
     return new_task
 
 #-------------------------
