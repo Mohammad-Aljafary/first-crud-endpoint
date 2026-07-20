@@ -14,11 +14,12 @@ class TaskCreate(BaseModel):
 
 tasks = []
 
-
+#-------------------------
 @router.get("/tasks", response_model=list[Task], description="Get all tasks")
 async def read_tasks() -> list[Task]:
     return tasks
 
+#-------------------------
 @router.get("/tasks/{task_id}", description="Get a task by ID")
 async def read_task(task_id: int) -> Task:
     for task in tasks:
@@ -26,6 +27,7 @@ async def read_task(task_id: int) -> Task:
             return task
     raise HTTPException(status_code=404, detail=f"Task {task_id} not found")
 
+#-------------------------
 @router.post("/tasks", status_code=201, description="Create a new task")
 async def create_task(task: TaskCreate) -> Task:
     if task.title == None or task.title.strip() == "":
@@ -38,6 +40,7 @@ async def create_task(task: TaskCreate) -> Task:
     tasks.append(new_task)
     return new_task
 
+#-------------------------
 @router.put("/tasks/{task_id}", description="Update a task by ID")
 async def update_task(task_id: int, task: Task) -> Task:
     if task.title == None or task.title.strip() == "":
@@ -50,6 +53,7 @@ async def update_task(task_id: int, task: Task) -> Task:
             return task
     raise HTTPException(status_code=404, detail=f"Task {task_id} not found")
 
+#-------------------------
 @router.delete("/tasks/{task_id}", status_code=204, description="Delete a task by ID")
 async def delete_task(task_id: int):
     for i, task in enumerate(tasks):
