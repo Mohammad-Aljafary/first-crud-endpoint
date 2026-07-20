@@ -1,7 +1,8 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from db import Task as TaskDB, SessionLocal
-from sqlalchemy import select
+from sqlalchemy import select, update, delete
+
 
 
 
@@ -51,18 +52,27 @@ async def update_task(task_id: int, task: Task) -> Task:
         raise HTTPException(status_code=400, detail="Task title cannot be empty")
     if task.done not in [True, False]:
         raise HTTPException(status_code=400, detail="Task done must be a boolean value")
-    for i, t in enumerate(tasks):
-        if t.id == task_id:
-            tasks[i] = task
-            return task
-    raise HTTPException(status_code=404, detail=f"Task {task_id} not found")
+    task_to_update = db.execute(
+        select(TaskDB).where(TaskDB.id == task_id)
+    ).scalar_one_or_none()
+    if task_to_update is None:
+        raise HTTPException(status_code=404, detail=f"Task {task_id} not found")
+    db.execute(
+        update(TaskDB).where(TaskDB.id == task_id).values(title=task.title, done=task.done)
+    )
+    db.commit()
+    return task_to_update
 
 #-------------------------
 @router.delete("/tasks/{task_id}", status_code=204, description="Delete a task by ID")
 async def delete_task(task_id: int):
-    for i, task in enumerate(tasks):
-        if task.id == task_id:
-            temp = tasks[i]
-            del tasks[i]
-            return temp
-    raise HTTPException(status_code=404, detail=f"Task {task_id} not found")
+    task_to_delete = db.execute(
+        select(TaskDB).where(TaskDB.id == task_id)
+    ).scalar_one_or_none()
+    if task_to_delete is None:
+        raise HTTPException(status_code=404, detail=f"Task {task_id} not found")
+    db.execute(
+        delete(TaskDB).where(TaskDB.id == task_id)
+    )
+    db.commit()
+    return task_to_delete
