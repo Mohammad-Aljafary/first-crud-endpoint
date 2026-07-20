@@ -220,6 +220,7 @@ dependencies = [
     { name = "fastapi" },
     { name = "pip" },
     { name = "python-dotenv" },
+    { name = "sqlalchemy" },
     { name = "sqlmodel" },
     { name = "uvicorn" },
 ]
@@ -230,6 +231,7 @@ requires-dist = [
     { name = "fastapi", specifier = ">=0.139.2" },
     { name = "pip", specifier = ">=26.1.2" },
     { name = "python-dotenv", specifier = ">=1.2.2" },
+    { name = "sqlalchemy", specifier = ">=2.0.51" },
     { name = "sqlmodel", specifier = ">=0.0.39" },
     { name = "uvicorn", specifier = ">=0.51.0" },
 ]

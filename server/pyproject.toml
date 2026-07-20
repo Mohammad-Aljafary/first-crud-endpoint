@@ -9,6 +9,7 @@ dependencies = [
     "fastapi>=0.139.2",
     "pip>=26.1.2",
     "python-dotenv>=1.2.2",
+    "sqlalchemy>=2.0.51",
     "sqlmodel>=0.0.39",
     "uvicorn>=0.51.0",
 ]

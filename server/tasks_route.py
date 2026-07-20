@@ -1,5 +1,8 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
+from db import Task as TaskDB, SessionLocal
+from sqlalchemy import select
+
 
 
 router = APIRouter()
@@ -12,19 +15,23 @@ class Task(BaseModel):
 class TaskCreate(BaseModel):
     title: str
 
-tasks = []
+db = SessionLocal()
 
 #-------------------------
 @router.get("/tasks", response_model=list[Task], description="Get all tasks")
 async def read_tasks() -> list[Task]:
+    tasks = db.query(TaskDB).all()
+    if not tasks:
+        raise HTTPException(status_code=404, detail="No tasks found")
     return tasks
 
 #-------------------------
 @router.get("/tasks/{task_id}", description="Get a task by ID")
 async def read_task(task_id: int) -> Task:
-    for task in tasks:
-        if task.id == task_id:
-            return task
+    task = db.execute(
+    select(TaskDB).where(TaskDB.id == task_id)).scalar_one_or_none()
+    if task is not None:
+        return task
     raise HTTPException(status_code=404, detail=f"Task {task_id} not found")
 
 #-------------------------
