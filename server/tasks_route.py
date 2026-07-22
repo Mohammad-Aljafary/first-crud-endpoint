@@ -15,6 +15,14 @@ class Task(BaseModel):
 
 class TaskCreate(BaseModel):
     title: str
+    done: bool = False
+
+class TaskUpdate(BaseModel):
+    title: str
+    done: bool
+
+
+
 
 db = SessionLocal()
 
@@ -37,41 +45,73 @@ async def read_task(task_id: int) -> Task:
 #-------------------------
 @router.post("/tasks", status_code=201, description="Create a new task")
 async def create_task(task: TaskCreate) -> Task:
-    if task.title == None or task.title.strip() == "":
-        raise HTTPException(status_code=400, detail="Task title cannot be empty")
-    new_task = TaskDB(title=task.title)
-    db.add(new_task)
+    if task.title is None or task.title.strip() == "":
+        raise HTTPException(
+            status_code=400,
+            detail="Task title cannot be empty"
+        )
+
+    new_task = db.execute(
+        text("""
+            INSERT INTO tasks (title, done)
+            VALUES (:title, :done)
+            RETURNING *
+        """),
+        {
+            "title": task.title,
+            "done": task.done
+        }
+    ).mappings().first()
+
     db.commit()
+
     return new_task
 
 #-------------------------
 @router.put("/tasks/{task_id}", description="Update a task by ID")
-async def update_task(task_id: int, task: Task) -> Task:
-    if task.title == None or task.title.strip() == "":
-        raise HTTPException(status_code=400, detail="Task title cannot be empty")
-    if task.done not in [True, False]:
-        raise HTTPException(status_code=400, detail="Task done must be a boolean value")
-    task_to_update = db.execute(
-        select(TaskDB).where(TaskDB.id == task_id)
-    ).scalar_one_or_none()
-    if task_to_update is None:
-        raise HTTPException(status_code=404, detail=f"Task {task_id} not found")
-    db.execute(
-        update(TaskDB).where(TaskDB.id == task_id).values(title=task.title, done=task.done)
-    )
+async def update_task(task_id: int, task: TaskUpdate) -> Task:
+    if task.title is None or task.title.strip() == "":
+        raise HTTPException(
+            status_code=400,
+            detail="Task title cannot be empty"
+        )
+
+    updated_task = db.execute(
+        text("""
+            UPDATE tasks
+            SET title = :title, done = :done
+            WHERE id = :id
+            RETURNING *
+        """),
+        {
+            "title": task.title,
+            "done": task.done,
+            "id": task_id
+        }
+    ).mappings().first()
+
+    if updated_task is None:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Task {task_id} not found"
+        )
+
     db.commit()
-    return task_to_update
+
+    return updated_task
 
 #-------------------------
 @router.delete("/tasks/{task_id}", status_code=204, description="Delete a task by ID")
 async def delete_task(task_id: int):
     task_to_delete = db.execute(
-        select(TaskDB).where(TaskDB.id == task_id)
-    ).scalar_one_or_none()
+        text("SELECT * FROM tasks WHERE id = :task_id"),
+        {"task_id": task_id}
+    ).mappings().first()
     if task_to_delete is None:
         raise HTTPException(status_code=404, detail=f"Task {task_id} not found")
     db.execute(
-        delete(TaskDB).where(TaskDB.id == task_id)
+        text("DELETE FROM tasks WHERE id = :task_id"),
+        {"task_id": task_id}
     )
     db.commit()
     return task_to_delete
