@@ -1,187 +1,71 @@
 # First CRUD Endpoints
 
-Simple FastAPI project for learning CRUD API design with a task management example backed by SQLite.
+This is a small FastAPI CRUD API for managing tasks. It runs with Docker Compose, uses PostgreSQL for persistence, and exposes a simple set of endpoints for creating, reading, updating, and deleting tasks.
 
-## Project Overview
+## What This Is
 
-This repository contains a small REST API built with FastAPI. It exposes a set of task endpoints for creating, reading, updating, and deleting tasks.
+It is a learning project for FastAPI, SQLAlchemy, and basic API design. The application starts with one command, loads its configuration from an env file, and includes a seeded tasks table so you can inspect real data immediately.
 
-Tasks are stored in SQLite, so the data survives server restarts. The project is intentionally lightweight and is a good starting point for practicing API structure, request validation, and route organization.
+## Run Everything
 
-## Why SQLite?
+From the repository root:
 
-- It lives in a single file, which keeps the project easy to move around.
-- It needs zero setup for local development.
-- It survives restarts, so your data does not disappear every time the app stops.
+```bash
+docker compose up
+```
 
-## Database Location
+## Environment Variables
 
-- The database file lives at `server/db/tasks.db`.
-- It is created automatically the first time the app starts.
-- It is usually git-ignored, so each new clone starts with a fresh database file.
+Copy [server/.env.example](server/.env.example) to [server/.env](server/.env) and set these values:
 
-## Features
-
-- FastAPI application with automatic validation and OpenAPI docs
-- CRUD endpoints for tasks
-- Basic health check endpoint
-- SQLite persistence for simple experimentation
-
-## Tech Stack
-
-- Python
-- FastAPI
-- Uvicorn
-- Pydantic
-- SQLite
-- SQLAlchemy
-
-## Project Structure
-
-- `server/main.py` - application setup and basic routes
-- `server/tasks_route.py` - task models and CRUD endpoints
-- `server/pyproject.toml` - project dependencies and metadata
-
-## API Endpoints
-
-### Root
-
-- `GET /` - returns a welcome message
+- `DATABASE_URL`
+- `POSTGRES_PASSWORD`
+- `POSTGRES_DB`
 
 Example:
 
-```bash
-curl http://localhost:8000/
+```env
+DATABASE_URL=postgresql+psycopg2://postgres:db_password@postgres:5432/db_name
+POSTGRES_PASSWORD=db_password
+POSTGRES_DB=db_name
 ```
 
-### Health
+## Endpoints
 
-- `GET /health` - returns API status
+| Method | Path | Description |
+| --- | --- | --- |
+| `GET` | `/` | Health-style welcome message |
+| `GET` | `/health` | Returns API status |
+| `GET` | `/tasks` | Returns all tasks |
+| `GET` | `/tasks/{task_id}` | Returns one task by ID |
+| `POST` | `/tasks` | Creates a task |
+| `PUT` | `/tasks/{task_id}` | Updates a task |
+| `DELETE` | `/tasks/{task_id}` | Deletes a task |
 
-Example:
-
-```bash
-curl http://localhost:8000/health
-```
-
-### Tasks
-
-- `GET /tasks` - list all tasks
-- `GET /tasks/{task_id}` - get a task by ID
-- `POST /tasks` - create a new task
-- `PUT /tasks/{task_id}` - update an existing task
-- `DELETE /tasks/{task_id}` - delete a task
-
-Example: list all tasks
+## Curl Example
 
 ```bash
-curl http://localhost:8000/tasks
+curl -i -X POST http://localhost:8000/tasks \
+  -H "Content-Type: application/json" \
+  -d '{"title":"Learn FastAPI","done":false}'
 ```
-
-Example: get a task by ID
-
-```bash
-curl http://localhost:8000/tasks/1
-```
-
-Example: create a task
-
-```bash
-curl -X POST http://localhost:8000/tasks \
-	-H "Content-Type: application/json" \
-	-d '{"title":"Learn FastAPI"}'
-```
-
-Example: update a task
-
-```bash
-curl -X PUT http://localhost:8000/tasks/1 \
-	-H "Content-Type: application/json" \
-	-d '{"id":1,"title":"Learn FastAPI","done":true}'
-```
-
-Example: delete a task
-
-```bash
-curl -X DELETE http://localhost:8000/tasks/1
-```
-
-## Task Payloads
-
-Create task request:
-
-```json
-{
-	"title": "Buy groceries"
-}
-```
-
-Create and update responses include:
-
-```json
-{
-	"id": 1,
-	"title": "Buy groceries",
-	"done": false
-}
-```
-
-## Getting Started
-
-### Install dependencies
-
-From the `server` directory:
-
-```bash
-uv sync
-```
-
-### Start the project
-
-```bash
-uv run uvicorn main:app --reload
-```
-
-### Open the docs
-
-Once the server is running, open:
-
-- Swagger UI: `http://localhost:8000/docs`
-- ReDoc: `http://localhost:8000/redoc`
 
 ## Database Screenshot
 
-![SQLite database open in DB Browser](docs/db-browser-snapshot.svg)
+The data in the database can be inspected in a GUI client such as DB Browser, DBeaver, pgAdmin, or TablePlus.
 
-## Example SQL Query
+![Tasks table in the database](docs/Screenshot%20from%202026-07-21%2001-28-20.png)
 
-One query used in Stage 4 was:
+## Project Structure
 
-```sql
-SELECT COUNT(*) FROM tasks;
-```
-
-On this copy of the database, it returned `4`.
-
-## Example Requests
-
-Create a task:
-
-```bash
-curl -X POST http://localhost:8000/tasks \
-	-H "Content-Type: application/json" \
-	-d '{"title":"Learn FastAPI"}'
-```
-
-List tasks:
-
-```bash
-curl http://localhost:8000/tasks
-```
+- `server/main.py` - application setup and base routes
+- `server/tasks_route.py` - task endpoints and request models
+- `server/db.py` - database connection, table creation, and seed data
+- `server/.env.example` - template for local environment variables
+- `docker-compose.yaml` - starts the API and PostgreSQL together
 
 ## Notes
 
-- Task IDs are assigned automatically by SQLite.
-- Empty task titles are rejected with a validation error.
-- Example tasks are seeded only when the table is empty, so they do not multiply on restart.
+- The tasks table is seeded when it is empty, so you can view example data right away.
+- If you change the env file, restart Compose so the containers pick up the new values.
 
